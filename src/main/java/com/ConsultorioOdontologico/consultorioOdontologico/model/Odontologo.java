@@ -21,6 +21,7 @@ public class Odontologo extends Persona{
     private Horario unHorario;
     
     @OneToMany(mappedBy = "odonto")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Turno> turnos;
     
     public Odontologo() {

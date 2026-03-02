@@ -1,4 +1,4 @@
-package com.ingeneo.app.utils.hash;
+package com.ConsultorioOdontologico.consultorioOdontologico.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;

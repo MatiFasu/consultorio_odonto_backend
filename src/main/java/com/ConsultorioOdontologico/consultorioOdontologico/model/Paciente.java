@@ -17,6 +17,7 @@ public class Paciente extends Persona{
     @OneToOne
     private Responsable unResponsable;
     @OneToMany(mappedBy = "pacien")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Turno> turnos;
 
     public Paciente() {
