@@ -16,13 +16,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class HorarioController {
     
     @Autowired
     private IHorarioService horarioServ;
-    
-    /*@CrossOrigin("http://127.0.0.1:5500")*/
+
     @GetMapping("/horario/traer")
     public List<Horario> getHorarios() {
         return horarioServ.getHorarios();

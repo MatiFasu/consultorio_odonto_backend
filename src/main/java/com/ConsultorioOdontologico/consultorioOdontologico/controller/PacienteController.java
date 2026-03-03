@@ -15,13 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class PacienteController {
     
     @Autowired
     private IPacienteService pacServ;
-    
-    @CrossOrigin("http://127.0.0.1:5500")
+
     @GetMapping("/paciente/traer")
     public List<Paciente> getPacientes() {
         return pacServ.getPacientes();
