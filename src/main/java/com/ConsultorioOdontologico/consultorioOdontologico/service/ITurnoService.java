@@ -2,6 +2,7 @@
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.model.Turno;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -16,5 +17,9 @@ public interface ITurnoService {
     public Turno findTurno(Long id);
     
     public void editTurno(Turno t);
+    
+    public List<Turno> getTurnosByOdontologo(Long odontoId);
+    
+    public List<Turno> getProximosTurnosByOdontologo(Long odontoId);
     
 }

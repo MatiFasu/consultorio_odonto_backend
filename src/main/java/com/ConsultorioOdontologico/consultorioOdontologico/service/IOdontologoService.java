@@ -16,4 +16,6 @@ public interface IOdontologoService {
     
     public void editOdontologo(Odontologo o);
     
+    public Odontologo findByUserId(Long userId);
+    
 }

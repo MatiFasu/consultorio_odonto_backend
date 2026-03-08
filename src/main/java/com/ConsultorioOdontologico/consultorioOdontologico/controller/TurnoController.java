@@ -23,6 +23,16 @@ public class TurnoController {
         return turnoServ.findTurno(id);
     }
     
+    @GetMapping("/turno/odontologo/{id}")
+    public List<Turno> getTurnosByOdontologo(@PathVariable Long id) {
+        return turnoServ.getTurnosByOdontologo(id);
+    }
+    
+    @GetMapping("/turno/odontologo/{id}/proximos")
+    public List<Turno> getProximosTurnosByOdontologo(@PathVariable Long id) {
+        return turnoServ.getProximosTurnosByOdontologo(id);
+    }
+    
     @PostMapping("/turno/crear")
     public String saveTurno(@RequestBody Turno t) {
         turnoServ.saveTurno(t);

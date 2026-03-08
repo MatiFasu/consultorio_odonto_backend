@@ -31,6 +31,11 @@ public class OdontologoController {
         return odontoService.findOdontologo(id_odon);
     }
     
+    @GetMapping("/odontologo/usuario/{userId}")
+    public Odontologo getOdontologoByUsuario(@PathVariable Long userId) {
+        return odontoService.findByUserId(userId);
+    }
+    
     @PostMapping("/odontologo/crear")
     public String saveOdontologo(@RequestBody Odontologo odonto) {
         odontoService.saveOdontologo(odonto);
