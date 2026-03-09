@@ -32,6 +32,7 @@ Este sistema permite gestionar de manera eficiente toda la operación de una cl�
 - **Gestión de Dependencias:** Maven
 - **Seguridad:** BCrypt para hashing de contraseñas
 - **Contenedores:** Docker & Docker Compose
+- **Arquitectura:** Monolítica
 
 ### **Frontend**
 [GITHUB FRONTEND](https://github.com/MatiFasu/consultorio_odonto_frontend)
