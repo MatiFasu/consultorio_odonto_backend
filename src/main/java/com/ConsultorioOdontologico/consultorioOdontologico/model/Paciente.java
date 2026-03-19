@@ -14,7 +14,8 @@ import lombok.Setter;
 public class Paciente extends Persona{
     private boolean tiene_OS;
     private String tipoSangre;
-    @OneToOne
+    @jakarta.persistence.OneToOne(cascade = jakarta.persistence.CascadeType.MERGE)
+    @jakarta.persistence.JoinColumn(name = "id_responsable")
     private Responsable unResponsable;
     @OneToMany(mappedBy = "pacien")
     @com.fasterxml.jackson.annotation.JsonIgnore

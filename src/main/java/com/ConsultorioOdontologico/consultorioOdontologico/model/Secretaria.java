@@ -12,7 +12,8 @@ import lombok.Setter;
 public class Secretaria extends Persona{
     private String sector;
     
-    @OneToOne
+    @jakarta.persistence.OneToOne(cascade = jakarta.persistence.CascadeType.MERGE)
+    @jakarta.persistence.JoinColumn(name = "id_usuario")
     private Usuario unUsuario;
 
     public Secretaria() {

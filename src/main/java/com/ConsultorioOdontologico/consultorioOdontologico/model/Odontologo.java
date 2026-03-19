@@ -14,10 +14,12 @@ public class Odontologo extends Persona{
     
     private String especialidad;
     
-    @OneToOne
+    @jakarta.persistence.OneToOne(cascade = jakarta.persistence.CascadeType.MERGE)
+    @jakarta.persistence.JoinColumn(name = "id_usuario")
     private Usuario unUsuario;
     
-    @OneToOne
+    @jakarta.persistence.OneToOne(cascade = jakarta.persistence.CascadeType.MERGE)
+    @jakarta.persistence.JoinColumn(name = "id_horario")
     private Horario unHorario;
     
     @OneToMany(mappedBy = "odonto")
