@@ -1,21 +1,21 @@
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Odontologo;
+import com.ConsultorioOdontologico.consultorioOdontologico.dto.OdontologoDTO;
 import java.util.List;
 
 
 public interface IOdontologoService {
     
-    public List<Odontologo> getOdontologos();
+    public List<OdontologoDTO> getOdontologos();
     
-    public void saveOdontologo(Odontologo o);
+    public void saveOdontologo(OdontologoDTO o);
     
     public void deleteOdontologo(Long id);
     
-    public Odontologo findOdontologo(Long id);
+    public OdontologoDTO findOdontologo(Long id);
     
-    public void editOdontologo(Odontologo o);
+    public void editOdontologo(OdontologoDTO o);
     
-    public Odontologo findByUserId(Long userId);
+    public OdontologoDTO findByUserId(Long userId);
     
 }

@@ -1,19 +1,13 @@
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Horario;
+import com.ConsultorioOdontologico.consultorioOdontologico.dto.HorarioDTO;
 import java.util.List;
 
-
 public interface IHorarioService {
-
-    public List<Horario> getHorarios();
-    
-    public Horario saveHorario(Horario h);
-    
+    public List<HorarioDTO> getHorarios();
+    public HorarioDTO saveHorario(HorarioDTO h);
     public void deleteHorario(Long id);
-    
-    public Horario findHorario(Long id);
-    
-    public void editHorario(Horario h);
-    
+    public HorarioDTO findHorario(Long id);
+    public void editHorario(HorarioDTO h);
 }
+

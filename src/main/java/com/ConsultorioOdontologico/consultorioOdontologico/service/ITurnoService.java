@@ -1,25 +1,24 @@
 
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Turno;
-import java.time.LocalDate;
+import com.ConsultorioOdontologico.consultorioOdontologico.dto.TurnoDTO;
 import java.util.List;
 
 
 public interface ITurnoService {
  
-    public List<Turno> getTurnos();
+    public List<TurnoDTO> getTurnos();
     
-    public void saveTurno(Turno t);
+    public void saveTurno(TurnoDTO t);
     
     public void deleteTurno(Long id);
     
-    public Turno findTurno(Long id);
+    public TurnoDTO findTurno(Long id);
     
-    public void editTurno(Turno t);
+    public void editTurno(TurnoDTO t);
     
-    public List<Turno> getTurnosByOdontologo(Long odontoId);
+    public List<TurnoDTO> getTurnosByOdontologo(Long odontoId);
     
-    public List<Turno> getProximosTurnosByOdontologo(Long odontoId);
+    public List<TurnoDTO> getProximosTurnosByOdontologo(Long odontoId);
     
 }

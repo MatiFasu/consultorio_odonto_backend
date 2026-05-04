@@ -1,6 +1,6 @@
 package com.ConsultorioOdontologico.consultorioOdontologico.controller;
 
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Secretaria;
+import com.ConsultorioOdontologico.consultorioOdontologico.dto.SecretariaDTO;
 import com.ConsultorioOdontologico.consultorioOdontologico.service.ISecretariaService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,17 +14,17 @@ public class SecretariaController {
     private ISecretariaService secreServ;
 
     @GetMapping("/secretaria/traer")
-    public List<Secretaria> getSecretarias() {
+    public List<SecretariaDTO> getSecretarias() {
         return secreServ.getSecretarias();
     }
     
     @GetMapping("/secretaria/traer/{id}")
-    public Secretaria getSecretaria(@PathVariable Long id) {
+    public SecretariaDTO getSecretaria(@PathVariable Long id) {
         return secreServ.findSecretaria(id);
     }
     
     @PostMapping("/secretaria/crear")
-    public String saveSecretaria(@RequestBody Secretaria s) {
+    public String saveSecretaria(@RequestBody SecretariaDTO s) {
         secreServ.saveSecretaria(s);
         return "Secretaria creado correctamente!";
     }
@@ -36,7 +36,7 @@ public class SecretariaController {
     }
     
     @PutMapping("/secretaria/editar")
-    public String editSecretaria(@RequestBody Secretaria s) {
+    public String editSecretaria(@RequestBody SecretariaDTO s) {
         secreServ.editSecretaria(s);
         return "Secretaria editado correctamente!";
     }

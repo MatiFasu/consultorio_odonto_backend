@@ -23,4 +23,8 @@ public interface ITurnoRepository extends JpaRepository<Turno, Long>{
     // Verificar si ya existe un turno agendado para un odontólogo a una hora específica
     @Query("SELECT COUNT(t) > 0 FROM Turno t WHERE t.odonto.id = :odontoId AND t.fecha_turno = :fecha AND t.hora_turno = :hora")
     boolean existsByOdontoIdAndFechaTurnoAndHoraTurno(@Param("odontoId") Long odontoId, @Param("fecha") LocalDate fecha, @Param("hora") String hora);
+
+    // Buscar todos los turnos para una fecha específica
+    @Query("SELECT t FROM Turno t WHERE t.fecha_turno = :fecha")
+    List<Turno> findByFechaTurno(@Param("fecha") LocalDate fecha);
 }

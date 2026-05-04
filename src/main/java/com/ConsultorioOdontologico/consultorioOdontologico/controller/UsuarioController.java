@@ -1,10 +1,13 @@
 package com.ConsultorioOdontologico.consultorioOdontologico.controller;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.LoginDto;
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Usuario;
-import com.ConsultorioOdontologico.consultorioOdontologico.service.IUsuarioService;
+import com.ConsultorioOdontologico.consultorioOdontologico.dto.UsuarioDTO;
+import com.ConsultorioOdontologico.consultorioOdontologico.service.UsuarioService;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,27 +15,32 @@ import org.springframework.web.bind.annotation.*;
 public class UsuarioController {
    
     @Autowired
-    private IUsuarioService usuServ;
+    private UsuarioService usuServ;
     
     @GetMapping("/usuario/traer")
-    public List<Usuario> getUsuarios() {
+    public List<UsuarioDTO> getUsuarios() {
         return usuServ.getUsuario();
     }
     
     @GetMapping("/usuario/traer/{id}")
-    public Usuario getUsuario(@PathVariable Long id) {
+    public UsuarioDTO getUsuario(@PathVariable Long id) {
         return usuServ.findUsuario(id);
     }
     
     @PostMapping("/usuario/crear")
-    public Long saveUsuario(@RequestBody Usuario u) {
-        Usuario usuarioGuardado = usuServ.saveUsuario(u);
+    public Long saveUsuario(@RequestBody UsuarioDTO u) {
+        UsuarioDTO usuarioGuardado = usuServ.saveUsuario(u);
         return usuarioGuardado.getId_usuario();
     }
     
     @PostMapping("/usuario/login")
-    public int login(@RequestBody LoginDto l) {
-        return usuServ.validarUsuario(l);
+    public ResponseEntity<?> login(@RequestBody LoginDto l) {
+        Map<String, Object> response = usuServ.login(l);
+        if (response != null) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales incorrectas");
+        }
     }
     
     @DeleteMapping("/usuario/borrar/{id}")
@@ -42,7 +50,7 @@ public class UsuarioController {
     }
     
     @PutMapping("/usuario/editar")
-    public String editUsuario(@RequestBody Usuario u) {
+    public String editUsuario(@RequestBody UsuarioDTO u) {
         usuServ.editUsuario(u);
         return "Usuario editado correctamente!";
     }

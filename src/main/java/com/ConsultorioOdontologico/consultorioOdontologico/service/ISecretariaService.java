@@ -1,19 +1,19 @@
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Secretaria;
+import com.ConsultorioOdontologico.consultorioOdontologico.dto.SecretariaDTO;
 import java.util.List;
 
 
 public interface ISecretariaService {
     
-    public List<Secretaria> getSecretarias();
+    public List<SecretariaDTO> getSecretarias();
     
-    public void saveSecretaria(Secretaria s);
+    public void saveSecretaria(SecretariaDTO s);
     
     public void deleteSecretaria(Long id);
     
-    public Secretaria findSecretaria(Long id);
+    public SecretariaDTO findSecretaria(Long id);
     
-    public void editSecretaria(Secretaria s);
+    public void editSecretaria(SecretariaDTO s);
     
 }

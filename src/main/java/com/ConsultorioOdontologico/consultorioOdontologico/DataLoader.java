@@ -2,17 +2,19 @@ package com.ConsultorioOdontologico.consultorioOdontologico;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.model.Usuario;
 import com.ConsultorioOdontologico.consultorioOdontologico.repository.IUsuarioRepository;
-import com.ConsultorioOdontologico.consultorioOdontologico.utils.BCrypt;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataLoader implements CommandLineRunner {
 
     private final IUsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public DataLoader(IUsuarioRepository usuarioRepository) {
+    public DataLoader(IUsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -20,10 +22,10 @@ public class DataLoader implements CommandLineRunner {
         if (usuarioRepository.count() == 0) {
             Usuario admin = new Usuario();
             admin.setUsuario("admin");
-            admin.setContrasenia(BCrypt.hashpw("admin", BCrypt.gensalt()));
+            admin.setContrasenia(passwordEncoder.encode("admin"));
             admin.setRol("ADMIN");
             usuarioRepository.save(admin);
-            System.out.println(">>> SISTEMA: Usuario admin/admin creado automáticamente.");
+            System.out.println(">>> SISTEMA: Usuario admin/admin creado con encriptación BCrypt oficial.");
         }
     }
 }

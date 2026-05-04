@@ -1,19 +1,8 @@
 package com.ConsultorioOdontologico.consultorioOdontologico;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+// Esta configuración ha sido movida a SecurityConfig.java para integrarse con Spring Security + JWT
 @Configuration
-public class CorsConfig implements WebMvcConfigurer {
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD")
-                .allowedHeaders("*")
-                .exposedHeaders("Authorization")
-                .allowCredentials(false); // IMPORTANTE: Cambiado a false si usamos allowedOrigins("*") para evitar errores de seguridad en navegadores modernos
-    }
+public class CorsConfig {
 }

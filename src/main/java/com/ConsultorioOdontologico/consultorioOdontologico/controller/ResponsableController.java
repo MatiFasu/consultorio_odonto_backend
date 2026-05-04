@@ -1,7 +1,7 @@
 
 package com.ConsultorioOdontologico.consultorioOdontologico.controller;
 
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Responsable;
+import com.ConsultorioOdontologico.consultorioOdontologico.dto.ResponsableDTO;
 import com.ConsultorioOdontologico.consultorioOdontologico.service.IResponsableService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,17 +14,17 @@ public class ResponsableController {
     private IResponsableService respoServ;
     
     @GetMapping("/responsable/traer")
-    public List<Responsable> getResponsables() {
+    public List<ResponsableDTO> getResponsables() {
         return respoServ.getResponsables();
     }
     
     @GetMapping("/responsable/traer/{id}")
-    public Responsable getResponsable(@PathVariable Long id) {
+    public ResponsableDTO getResponsable(@PathVariable Long id) {
         return respoServ.findResponsable(id);
     }
     
     @PostMapping("/responsable/crear")
-    public String saveResponsable(@RequestBody Responsable r) {
+    public String saveResponsable(@RequestBody ResponsableDTO r) {
         respoServ.saveResponsable(r);
         return "Responsable creado correctamente!";
     }
@@ -36,7 +36,7 @@ public class ResponsableController {
     }
     
     @PutMapping("/responsable/editar")
-    public String editResponsable(@RequestBody Responsable r) {
+    public String editResponsable(@RequestBody ResponsableDTO r) {
         respoServ.editResponsable(r);
         return "Responsable editado correctamente!";
     }

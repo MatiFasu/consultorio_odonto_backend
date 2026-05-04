@@ -17,7 +17,7 @@ public class Paciente extends Persona{
     @jakarta.persistence.OneToOne(cascade = jakarta.persistence.CascadeType.MERGE)
     @jakarta.persistence.JoinColumn(name = "id_responsable")
     private Responsable unResponsable;
-    @OneToMany(mappedBy = "pacien")
+    @OneToMany(mappedBy = "pacien", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Turno> turnos;
 

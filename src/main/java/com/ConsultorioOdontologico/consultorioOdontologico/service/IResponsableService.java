@@ -1,20 +1,20 @@
 
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Responsable;
+import com.ConsultorioOdontologico.consultorioOdontologico.dto.ResponsableDTO;
 import java.util.List;
 
 
 public interface IResponsableService {
     
-    public List<Responsable> getResponsables();
+    public List<ResponsableDTO> getResponsables();
     
-    public void saveResponsable(Responsable r);
+    public void saveResponsable(ResponsableDTO r);
     
     public void deleteResponsable(Long id);
     
-    public Responsable findResponsable(Long id);
+    public ResponsableDTO findResponsable(Long id);
     
-    public void editResponsable(Responsable r);
+    public void editResponsable(ResponsableDTO r);
     
 }
