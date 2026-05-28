@@ -52,9 +52,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         List<String> origins = new ArrayList<>();
-        // Siempre permitimos localhost para desarrollo
+        // Siempre permitimos localhost para desarrollo y el Netlify de produccion por defecto
         origins.add("http://localhost:5173");
         origins.add("http://127.0.0.1:5173");
+        origins.add("https://consultorio-odontosys.netlify.app");
         
         // Añadimos orígenes extra desde variable de entorno si existen
         if (allowedOriginsConfig != null && !allowedOriginsConfig.isEmpty()) {
