@@ -1,4 +1,3 @@
-
 package com.ConsultorioOdontologico.consultorioOdontologico.repository;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.model.Presupuesto;
@@ -9,4 +8,5 @@ import java.util.List;
 @Repository
 public interface IPresupuestoRepository extends JpaRepository<Presupuesto, Long> {
     List<Presupuesto> findByPacienteIdOrderByFechaDesc(Long pacienteId);
+    List<Presupuesto> findByPacienteId(Long pacienteId);
 }

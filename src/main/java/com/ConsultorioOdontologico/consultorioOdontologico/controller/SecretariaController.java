@@ -2,42 +2,53 @@ package com.ConsultorioOdontologico.consultorioOdontologico.controller;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.SecretariaDTO;
 import com.ConsultorioOdontologico.consultorioOdontologico.service.ISecretariaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "*")
+@RequestMapping("/secretaria")
+@RequiredArgsConstructor
+@Tag(name = "Secretaria", description = "Endpoints para la gestión administrativa")
 public class SecretariaController {
     
-    @Autowired
-    private ISecretariaService secreServ;
+    private final ISecretariaService secreServ;
 
-    @GetMapping("/secretaria/traer")
+    @GetMapping("/traer")
+    @Operation(summary = "Obtener todas las secretarias")
     public List<SecretariaDTO> getSecretarias() {
         return secreServ.getSecretarias();
     }
     
-    @GetMapping("/secretaria/traer/{id}")
+    @GetMapping("/traer/{id}")
+    @Operation(summary = "Buscar una secretaria por ID")
     public SecretariaDTO getSecretaria(@PathVariable Long id) {
         return secreServ.findSecretaria(id);
     }
     
-    @PostMapping("/secretaria/crear")
-    public String saveSecretaria(@RequestBody SecretariaDTO s) {
+    @PostMapping("/crear")
+    @Operation(summary = "Registrar una nueva secretaria")
+    public ResponseEntity<String> saveSecretaria(@Valid @RequestBody SecretariaDTO s) {
         secreServ.saveSecretaria(s);
-        return "Secretaria creado correctamente!";
+        return new ResponseEntity<>("Secretaria creada correctamente!", HttpStatus.CREATED);
     }
     
-    @DeleteMapping("/secretaria/borrar/{id}")
-    public String deleteSecretaria(@PathVariable Long id) {
+    @DeleteMapping("/borrar/{id}")
+    @Operation(summary = "Eliminar una secretaria")
+    public ResponseEntity<String> deleteSecretaria(@PathVariable Long id) {
         secreServ.deleteSecretaria(id);
-        return "Secretaria borrado correctamente!";
+        return ResponseEntity.ok("Secretaria eliminada correctamente!");
     }
     
-    @PutMapping("/secretaria/editar")
-    public String editSecretaria(@RequestBody SecretariaDTO s) {
+    @PutMapping("/editar")
+    @Operation(summary = "Editar datos de una secretaria")
+    public ResponseEntity<String> editSecretaria(@Valid @RequestBody SecretariaDTO s) {
         secreServ.editSecretaria(s);
-        return "Secretaria editado correctamente!";
+        return ResponseEntity.ok("Secretaria editada correctamente!");
     }
 }

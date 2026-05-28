@@ -1,83 +1,100 @@
-
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.OdontologoDTO;
+import com.ConsultorioOdontologico.consultorioOdontologico.mapper.OdontologoMapper;
+import com.ConsultorioOdontologico.consultorioOdontologico.model.Horario;
 import com.ConsultorioOdontologico.consultorioOdontologico.model.Odontologo;
+import com.ConsultorioOdontologico.consultorioOdontologico.model.Usuario;
 import com.ConsultorioOdontologico.consultorioOdontologico.repository.IHorarioRepository;
 import com.ConsultorioOdontologico.consultorioOdontologico.repository.IOdontologoRepository;
+import com.ConsultorioOdontologico.consultorioOdontologico.repository.IUsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.ConsultorioOdontologico.consultorioOdontologico.repository.ITurnoRepository;
-import com.ConsultorioOdontologico.consultorioOdontologico.repository.IUsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-
 @Service
-public class OdontologoService implements IOdontologoService{
+@RequiredArgsConstructor
+public class OdontologoService implements IOdontologoService {
     
-    @Autowired
-    private IOdontologoRepository odontoRepo;
-
-    @Autowired
-    private ITurnoRepository turnoRepo;
-
-    @Autowired
-    private IUsuarioRepository usuarioRepo;
-
-    @Autowired
-    private IHorarioRepository horarioRepo;
+    private final IOdontologoRepository odontoRepo;
+    private final IUsuarioRepository usuarioRepo;
+    private final IHorarioRepository horarioRepo;
+    private final OdontologoMapper odontologoMapper;
 
     @Override
     public List<OdontologoDTO> getOdontologos() {
         return odontoRepo.findAll().stream()
-                .map(this::convertToDTO)
+                .map(odontologoMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void saveOdontologo(OdontologoDTO oDTO) {
-        Odontologo o = convertToEntity(oDTO);
+        // Validación de horarios
+        if (oDTO.getHorarioInicio() != null && oDTO.getHorarioFinal() != null) {
+            if (oDTO.getHorarioInicio().compareTo(oDTO.getHorarioFinal()) >= 0) {
+                throw new IllegalArgumentException("El horario de inicio debe ser anterior al horario final");
+            }
+        }
+
+        Usuario user = null;
+        if (oDTO.getIdUsuario() != null) {
+            user = usuarioRepo.findById(oDTO.getIdUsuario())
+                    .orElseThrow(() -> new IllegalArgumentException("El usuario con ID " + oDTO.getIdUsuario() + " no existe"));
+        }
+        
+        Horario hor = null;
+        if (oDTO.getIdHorario() != null) {
+            hor = horarioRepo.findById(oDTO.getIdHorario())
+                    .orElseThrow(() -> new IllegalArgumentException("El horario con ID " + oDTO.getIdHorario() + " no existe"));
+        } else if (oDTO.getHorarioInicio() != null && oDTO.getHorarioFinal() != null) {
+            hor = new Horario(null, oDTO.getHorarioInicio(), oDTO.getHorarioFinal());
+        }
+        
+        Odontologo o = odontologoMapper.toEntity(oDTO, user, hor);
         odontoRepo.save(o);
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void editOdontologo(OdontologoDTO oDTO) {
         if (oDTO == null || oDTO.getId() == null) return;
         
-        Odontologo existing = odontoRepo.findById(oDTO.getId()).orElse(null);
-        if (existing == null) return;
-
-        existing.setNombre(oDTO.getNombre());
-        existing.setApellido(oDTO.getApellido());
-        existing.setDni(oDTO.getDni());
-        existing.setTelefono(oDTO.getTelefono());
-        existing.setDireccion(oDTO.getDireccion());
-        existing.setFecha_nac(oDTO.getFecha_nac());
-        existing.setEspecialidad(oDTO.getEspecialidad());
-
-        if (oDTO.getIdUsuario() != null) {
-            existing.setUnUsuario(usuarioRepo.findById(oDTO.getIdUsuario()).orElse(null));
-        } else {
-            existing.setUnUsuario(null);
+        // Validación de horarios
+        if (oDTO.getHorarioInicio() != null && oDTO.getHorarioFinal() != null) {
+            if (oDTO.getHorarioInicio().compareTo(oDTO.getHorarioFinal()) >= 0) {
+                throw new IllegalArgumentException("El horario de inicio debe ser anterior al horario final");
+            }
         }
 
-        if (oDTO.getIdHorario() != null) {
-            existing.setUnHorario(horarioRepo.findById(oDTO.getIdHorario()).orElse(null));
-        } else {
-            existing.setUnHorario(null);
-        }
-
-        odontoRepo.save(existing);
+        odontoRepo.findById(oDTO.getId()).ifPresent(existing -> {
+            Usuario user = null;
+            if (oDTO.getIdUsuario() != null) {
+                user = usuarioRepo.findById(oDTO.getIdUsuario()).orElse(null);
+            }
+            
+            Horario hor = existing.getUnHorario();
+            if (hor != null) {
+                if (oDTO.getHorarioInicio() != null) hor.setHorario_inicio(oDTO.getHorarioInicio());
+                if (oDTO.getHorarioFinal() != null) hor.setHorario_final(oDTO.getHorarioFinal());
+            } else if (oDTO.getHorarioInicio() != null && oDTO.getHorarioFinal() != null) {
+                hor = new Horario(null, oDTO.getHorarioInicio(), oDTO.getHorarioFinal());
+            }
+            
+            odontologoMapper.updateEntityFromDTO(oDTO, existing, user, hor);
+            odontoRepo.save(existing);
+        });
     }
 
     @Override
     public OdontologoDTO findByUserId(Long userId) {
-        Odontologo o = odontoRepo.findByUsuarioId(userId).orElse(null);
-        return (o != null) ? convertToDTO(o) : null;
+        return odontoRepo.findByUsuarioId(userId)
+                .map(odontologoMapper::toDTO)
+                .orElse(null);
     }
 
     @Override
@@ -87,48 +104,8 @@ public class OdontologoService implements IOdontologoService{
 
     @Override
     public OdontologoDTO findOdontologo(Long id) {
-        Odontologo o = odontoRepo.findById(id).orElse(null);
-        return (o != null) ? convertToDTO(o) : null;
-    }
-
-    private OdontologoDTO convertToDTO(Odontologo o) {
-        OdontologoDTO dto = new OdontologoDTO();
-        dto.setId(o.getId());
-        dto.setDni(o.getDni());
-        dto.setNombre(o.getNombre());
-        dto.setApellido(o.getApellido());
-        dto.setTelefono(o.getTelefono());
-        dto.setDireccion(o.getDireccion());
-        dto.setFecha_nac(o.getFecha_nac());
-        dto.setEspecialidad(o.getEspecialidad());
-        if (o.getUnUsuario() != null) {
-            dto.setIdUsuario(o.getUnUsuario().getId_usuario());
-            dto.setNombreUsuario(o.getUnUsuario().getUsuario());
-        }
-        if (o.getUnHorario() != null) {
-            dto.setIdHorario(o.getUnHorario().getId_horario());
-            dto.setHorarioInicio(o.getUnHorario().getHorario_inicio());
-            dto.setHorarioFinal(o.getUnHorario().getHorario_final());
-        }
-        return dto;
-    }
-
-    private Odontologo convertToEntity(OdontologoDTO dto) {
-        Odontologo o = new Odontologo();
-        o.setId(dto.getId());
-        o.setDni(dto.getDni());
-        o.setNombre(dto.getNombre());
-        o.setApellido(dto.getApellido());
-        o.setTelefono(dto.getTelefono());
-        o.setDireccion(dto.getDireccion());
-        o.setFecha_nac(dto.getFecha_nac());
-        o.setEspecialidad(dto.getEspecialidad());
-        if (dto.getIdUsuario() != null) {
-            o.setUnUsuario(usuarioRepo.findById(dto.getIdUsuario()).orElse(null));
-        }
-        if (dto.getIdHorario() != null) {
-            o.setUnHorario(horarioRepo.findById(dto.getIdHorario()).orElse(null));
-        }
-        return o;
+        return odontoRepo.findById(id)
+                .map(odontologoMapper::toDTO)
+                .orElse(null);
     }
 }

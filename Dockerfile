@@ -1,18 +1,15 @@
-# Etapa 1: Construcción
-FROM maven:3.8.4-openjdk-17-slim AS build
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
-# Copiamos el archivo pom.xml para descargar las dependencias (mejor cacheo)
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
-# Copiamos el código fuente y compilamos el proyecto, saltando los tests para agilizar
 COPY src ./src
-RUN mvn package -DskipTests
+RUN mvn clean package -DskipTests
 
-# Etapa 2: Ejecución (Runtime)
-FROM eclipse-temurin:17-jre-alpine
+# Stage 2: Run
+FROM eclipse-temurin:17-jre
 WORKDIR /app
-# Copiamos solo el JAR resultante de la etapa anterior
-COPY --from=build /app/target/consultorioOdontologico-0.0.1.jar app_consultorio.jar
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-# Comando de arranque
-ENTRYPOINT ["java", "-jar", "app_consultorio.jar"]
+
+# Usamos variables de entorno para configurar la app
+ENTRYPOINT ["java", "-jar", "app.jar"]

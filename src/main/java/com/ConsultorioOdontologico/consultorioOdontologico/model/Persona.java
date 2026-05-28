@@ -6,18 +6,18 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.util.Date;
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter @Setter
+@Audited
 public class Persona {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +25,7 @@ public class Persona {
     
     @NotBlank(message = "El DNI es obligatorio")
     @Size(min = 7, max = 12, message = "El DNI debe tener entre 7 y 12 caracteres")
+    @jakarta.persistence.Column(unique = true, nullable = false)
     private String dni;
 
     @NotBlank(message = "El nombre es obligatorio")
@@ -35,14 +36,13 @@ public class Persona {
     
     private String telefono;
     private String direccion;
-    @Temporal(TemporalType.DATE)
-    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd")
-    private Date fecha_nac;
+    
+    private LocalDate fecha_nac;
 
     public Persona() {
     }
 
-    public Persona(Long id, String dni, String nombre, String apellido, String telefono, String direccion, Date fecha_nac) {
+    public Persona(Long id, String dni, String nombre, String apellido, String telefono, String direccion, LocalDate fecha_nac) {
         this.id = id;
         this.dni = dni;
         this.nombre = nombre;

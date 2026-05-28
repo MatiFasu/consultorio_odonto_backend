@@ -9,25 +9,31 @@ import java.util.Collection;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter @Setter
 @Entity
+@Audited
 public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id_usuario;
+    @jakarta.persistence.Column(name = "id")
+    private Long id;
+    
+    @jakarta.persistence.Column(unique = true, nullable = false)
     private String usuario;
+    
     private String contrasenia;
     private String rol;
 
     public Usuario() {
     }
 
-    public Usuario(Long id_usuario, String usuario, String contrasenia, String rol) {
-        this.id_usuario = id_usuario;
+    public Usuario(Long id, String usuario, String contrasenia, String rol) {
+        this.id = id;
         this.usuario = usuario;
         this.contrasenia = contrasenia;
         this.rol = rol;

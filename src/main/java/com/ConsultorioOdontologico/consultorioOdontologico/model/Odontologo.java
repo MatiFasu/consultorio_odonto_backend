@@ -3,23 +3,25 @@ package com.ConsultorioOdontologico.consultorioOdontologico.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 
 @Getter @Setter
 @Entity
+@Audited
 public class Odontologo extends Persona{
     
     private String especialidad;
     
     @jakarta.persistence.OneToOne(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-    @jakarta.persistence.JoinColumn(name = "id_usuario")
+    @jakarta.persistence.JoinColumn(name = "usuario_id")
     private Usuario unUsuario;
     
     @jakarta.persistence.OneToOne(cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-    @jakarta.persistence.JoinColumn(name = "id_horario")
+    @jakarta.persistence.JoinColumn(name = "horario_id")
     private Horario unHorario;
     
     @OneToMany(mappedBy = "odonto", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
@@ -29,7 +31,7 @@ public class Odontologo extends Persona{
     public Odontologo() {
     }
 
-    public Odontologo(String especialidad, Usuario unUsuario, Horario unHorario, List<Turno> turnos, Long id, String dni, String nombre, String apellido, String telefono, String direccion, Date fecha_nac) {
+    public Odontologo(String especialidad, Usuario unUsuario, Horario unHorario, List<Turno> turnos, Long id, String dni, String nombre, String apellido, String telefono, String direccion, LocalDate fecha_nac) {
         super(id, dni, nombre, apellido, telefono, direccion, fecha_nac);
         this.especialidad = especialidad;
         this.unUsuario = unUsuario;

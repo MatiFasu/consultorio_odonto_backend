@@ -1,101 +1,105 @@
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.TurnoDTO;
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Turno;
-import com.ConsultorioOdontologico.consultorioOdontologico.model.Paciente;
+import com.ConsultorioOdontologico.consultorioOdontologico.mapper.TurnoMapper;
 import com.ConsultorioOdontologico.consultorioOdontologico.model.Odontologo;
-import com.ConsultorioOdontologico.consultorioOdontologico.repository.ITurnoRepository;
-import com.ConsultorioOdontologico.consultorioOdontologico.repository.IPacienteRepository;
+import com.ConsultorioOdontologico.consultorioOdontologico.model.Paciente;
+import com.ConsultorioOdontologico.consultorioOdontologico.model.Turno;
 import com.ConsultorioOdontologico.consultorioOdontologico.repository.IOdontologoRepository;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ConsultorioOdontologico.consultorioOdontologico.repository.IPacienteRepository;
+import com.ConsultorioOdontologico.consultorioOdontologico.repository.ITurnoRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
+@RequiredArgsConstructor
 public class TurnoService implements ITurnoService {
     
-    @Autowired
-    private ITurnoRepository turnoRepo;
-    
-    @Autowired
-    private IPacienteRepository pacienteRepo;
-    
-    @Autowired
-    private IOdontologoRepository odontoRepo;
+    private final ITurnoRepository turnoRepo;
+    private final IPacienteRepository pacienteRepo;
+    private final IOdontologoRepository odontoRepo;
+    private final TurnoMapper turnoMapper;
 
     @Override
     public List<TurnoDTO> getTurnos() {
         return turnoRepo.findAll().stream()
-                .map(this::convertToDTO)
+                .map(turnoMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<TurnoDTO> getTurnosPaginated(Pageable pageable) {
+        return turnoRepo.findAll(pageable).map(turnoMapper::toDTO);
+    }
+
+    @Override
+    public Page<TurnoDTO> getTurnosByFechaPaginated(LocalDate fecha, Pageable pageable) {
+        return turnoRepo.findByFechaTurno(fecha, pageable).map(turnoMapper::toDTO);
     }
 
     @Override
     @Transactional
     public void saveTurno(TurnoDTO tDTO) {
-        // 1. Validar y recuperar Paciente real de la BD
-        if (tDTO.getIdPaciente() == null) {
-            throw new RuntimeException("Error: El ID del paciente es obligatorio.");
-        }
         Paciente p = pacienteRepo.findById(tDTO.getIdPaciente())
-                .orElseThrow(() -> new RuntimeException("Error: No se encontró al paciente con ID: " + tDTO.getIdPaciente()));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró al paciente con ID: " + tDTO.getIdPaciente()));
 
-        // 2. Validar y recuperar Odontologo real de la BD
-        if (tDTO.getIdOdontologo() == null) {
-            throw new RuntimeException("Error: El ID del odontólogo es obligatorio.");
-        }
         Odontologo o = odontoRepo.findById(tDTO.getIdOdontologo())
-                .orElseThrow(() -> new RuntimeException("Error: No se encontró al odontólogo con ID: " + tDTO.getIdOdontologo()));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró al odontólogo con ID: " + tDTO.getIdOdontologo()));
         
-        // 3. VALIDACIÓN DE HORARIO (No permitir turnos en el pasado)
-        java.time.LocalDate hoy = java.time.LocalDate.now();
-        if (tDTO.getFecha_turno().isBefore(hoy)) {
-            throw new RuntimeException("Error: No se pueden agendar turnos en fechas pasadas.");
-        }
+        validarAgenda(tDTO, o);
         
-        if (tDTO.getFecha_turno().isEqual(hoy)) {
-            java.time.LocalTime ahora = java.time.LocalTime.now();
-            java.time.LocalTime horaTurno = java.time.LocalTime.parse(tDTO.getHora_turno());
-            if (horaTurno.isBefore(ahora)) {
-                throw new RuntimeException("Error: No se puede agendar un turno para una hora que ya pasó (" + tDTO.getHora_turno() + ").");
-            }
-        }
-
-        // 4. VALIDACIÓN DE HORARIO LABORAL
-        if (o.getUnHorario() != null) {
-            String horaTurno = tDTO.getHora_turno(); 
-            String inicio = o.getUnHorario().getHorario_inicio();
-            String fin = o.getUnHorario().getHorario_final();
-            
-            if (horaTurno != null && inicio != null && fin != null) {
-                if (horaTurno.compareTo(inicio) < 0 || horaTurno.compareTo(fin) >= 0) {
-                    throw new RuntimeException("Error: El odontólogo Dr. " + o.getApellido() + 
-                        " no trabaja en ese horario. Su jornada es de " + inicio + " a " + fin);
-                }
-            }
-        }
-
-        // 5. VALIDACIÓN DE SUPERPOSICIÓN
-        List<Turno> turnosEnEseHorario = turnoRepo.findByFechaTurno(tDTO.getFecha_turno());
-        boolean yaExiste = turnosEnEseHorario.stream()
-            .anyMatch(existente -> 
-                existente.getOdonto().getId().equals(o.getId()) && 
-                existente.getHora_turno().equals(tDTO.getHora_turno()) &&
-                (tDTO.getId_turno() == null || !existente.getId_turno().equals(tDTO.getId_turno()))
-            );
-
-        if (yaExiste) {
-            throw new RuntimeException("Error: El Dr. " + o.getApellido() + 
-                " ya tiene un turno agendado para el " + tDTO.getFecha_turno() + " a las " + tDTO.getHora_turno());
-        }
-        
-        // 6. Convertir y Guardar
-        Turno t = convertToEntity(tDTO);
+        Turno t = turnoMapper.toEntity(tDTO);
         t.setPacien(p);
         t.setOdonto(o);
         turnoRepo.save(t);
+    }
+
+    private void validarAgenda(TurnoDTO tDTO, Odontologo o) {
+        LocalDate hoy = LocalDate.now();
+        if (tDTO.getFecha_turno().isBefore(hoy)) {
+            throw new IllegalArgumentException("No se pueden agendar turnos en fechas pasadas.");
+        }
+        
+        if (tDTO.getFecha_turno().isEqual(hoy)) {
+            LocalTime ahora = LocalTime.now();
+            LocalTime horaTurno = LocalTime.parse(tDTO.getHora_turno());
+            if (horaTurno.isBefore(ahora)) {
+                throw new IllegalArgumentException("No se puede agendar un turno para una hora que ya pasó (" + tDTO.getHora_turno() + ").");
+            }
+        }
+
+        if (o.getUnHorario() == null) {
+            throw new IllegalArgumentException("El Dr. " + o.getApellido() + " no tiene un horario de atención configurado. Configure su horario antes de agendar turnos.");
+        }
+
+        LocalTime horaTurno = LocalTime.parse(tDTO.getHora_turno());
+        LocalTime inicio = LocalTime.parse(o.getUnHorario().getHorario_inicio());
+        LocalTime fin = LocalTime.parse(o.getUnHorario().getHorario_final());
+        
+        if (horaTurno.isBefore(inicio) || horaTurno.isAfter(fin)) {
+            throw new IllegalArgumentException("El Dr. " + o.getApellido() + 
+                " no trabaja en ese horario. Su jornada es de " + o.getUnHorario().getHorario_inicio() + " a " + o.getUnHorario().getHorario_final());
+        }
+
+        boolean yaExiste;
+        if (tDTO.getId() == null) {
+            yaExiste = turnoRepo.existsByOdontoIdAndFechaTurnoAndHoraTurno(o.getId(), tDTO.getFecha_turno(), tDTO.getHora_turno());
+        } else {
+            yaExiste = turnoRepo.existsByOdontoIdAndFechaTurnoAndHoraTurnoAndIdNot(o.getId(), tDTO.getFecha_turno(), tDTO.getHora_turno(), tDTO.getId());
+        }
+
+        if (yaExiste) {
+            throw new IllegalArgumentException("El Dr. " + o.getApellido() + 
+                " ya tiene un turno agendado para el " + tDTO.getFecha_turno() + " a las " + tDTO.getHora_turno());
+        }
     }
 
     @Override
@@ -105,57 +109,44 @@ public class TurnoService implements ITurnoService {
 
     @Override
     public TurnoDTO findTurno(Long id) {
-        Turno t = turnoRepo.findById(id).orElse(null);
-        return (t != null) ? convertToDTO(t) : null;
+        return turnoRepo.findById(id)
+                .map(turnoMapper::toDTO)
+                .orElse(null);
     }
 
     @Override
     @Transactional
-    public void editTurno(TurnoDTO t) {
-        this.saveTurno(t);
+    public void editTurno(TurnoDTO tDTO) {
+        if (tDTO == null || tDTO.getId() == null) return;
+
+        Turno existing = turnoRepo.findById(tDTO.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Turno no encontrado con ID: " + tDTO.getId()));
+
+        Odontologo o = odontoRepo.findById(tDTO.getIdOdontologo())
+                .orElseThrow(() -> new IllegalArgumentException("Odontólogo no encontrado con ID: " + tDTO.getIdOdontologo()));
+
+        validarAgenda(tDTO, o);
+
+        Paciente p = pacienteRepo.findById(tDTO.getIdPaciente())
+                .orElseThrow(() -> new IllegalArgumentException("Paciente no encontrado con ID: " + tDTO.getIdPaciente()));
+
+        turnoMapper.updateEntityFromDTO(tDTO, existing);
+        existing.setOdonto(o);
+        existing.setPacien(p);
+        turnoRepo.save(existing);
     }
 
     @Override
     public List<TurnoDTO> getTurnosByOdontologo(Long odontoId) {
         return turnoRepo.findByOdontoId(odontoId).stream()
-                .map(this::convertToDTO)
+                .map(turnoMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<TurnoDTO> getProximosTurnosByOdontologo(Long odontoId) {
-        return turnoRepo.findByOdontoIdAndFechaTurnoGreaterThanEqual(odontoId, java.time.LocalDate.now()).stream()
-                .map(this::convertToDTO)
+        return turnoRepo.findByOdontoIdAndFechaTurnoGreaterThanEqual(odontoId, LocalDate.now()).stream()
+                .map(turnoMapper::toDTO)
                 .collect(Collectors.toList());
-    }
-
-    // Mappers
-    private TurnoDTO convertToDTO(Turno t) {
-        TurnoDTO dto = new TurnoDTO();
-        dto.setId_turno(t.getId_turno());
-        dto.setFecha_turno(t.getFecha_turno());
-        dto.setHora_turno(t.getHora_turno());
-        dto.setAfeccion(t.getAfeccion());
-        if (t.getPacien() != null) {
-            dto.setIdPaciente(t.getPacien().getId());
-            dto.setNombrePaciente(t.getPacien().getNombre() + " " + t.getPacien().getApellido());
-            dto.setTelefonoPaciente(t.getPacien().getTelefono());
-        }
-        if (t.getOdonto() != null) {
-            dto.setIdOdontologo(t.getOdonto().getId());
-            dto.setNombreOdontologo(t.getOdonto().getNombre() + " " + t.getOdonto().getApellido());
-            dto.setTelefonoOdontologo(t.getOdonto().getTelefono());
-        }
-        return dto;
-    }
-
-    private Turno convertToEntity(TurnoDTO dto) {
-        Turno t = new Turno();
-        t.setId_turno(dto.getId_turno());
-        t.setFecha_turno(dto.getFecha_turno());
-        t.setHora_turno(dto.getHora_turno());
-        t.setAfeccion(dto.getAfeccion());
-        // El paciente y odontólogo se cargan en el saveTurno por ID
-        return t;
     }
 }

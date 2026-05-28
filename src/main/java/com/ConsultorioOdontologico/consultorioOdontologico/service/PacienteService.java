@@ -1,38 +1,66 @@
-
 package com.ConsultorioOdontologico.consultorioOdontologico.service;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.PacienteDTO;
+import com.ConsultorioOdontologico.consultorioOdontologico.mapper.PacienteMapper;
 import com.ConsultorioOdontologico.consultorioOdontologico.model.Paciente;
 import com.ConsultorioOdontologico.consultorioOdontologico.model.Responsable;
 import com.ConsultorioOdontologico.consultorioOdontologico.repository.IPacienteRepository;
 import com.ConsultorioOdontologico.consultorioOdontologico.repository.IResponsableRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
-public class PacienteService implements IPacienteService{
+@RequiredArgsConstructor
+public class PacienteService implements IPacienteService {
     
-    @Autowired
-    private IPacienteRepository pacRepo;
-
-    @Autowired
-    private IResponsableRepository respRepo;
+    private final IPacienteRepository pacRepo;
+    private final IResponsableRepository respRepo;
+    private final PacienteMapper pacienteMapper;
 
     @Override
     public List<PacienteDTO> getPacientes() {
-        List<Paciente> listaPacientes = pacRepo.findAll();
-        return listaPacientes.stream()
-                .map(this::convertToDTO)
+        return pacRepo.findAll().stream()
+                .map(pacienteMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
-    public void savePaciente(PacienteDTO pDTO) {
-        Paciente p = convertToEntity(pDTO);
-        pacRepo.save(p);
+    public Page<PacienteDTO> getPacientesPaginated(Pageable pageable) {
+        return pacRepo.findAll(pageable).map(pacienteMapper::toDTO);
+    }
+
+    private void validarResponsabilidad(PacienteDTO pDTO) {
+        if (pDTO.getFecha_nac() != null) {
+            LocalDate fechaNacimiento = pDTO.getFecha_nac();
+            int edad = Period.between(fechaNacimiento, LocalDate.now()).getYears();
+            if (edad < 18 && pDTO.getIdResponsable() == null) {
+                throw new IllegalArgumentException("El paciente es menor de edad y debe tener un Responsable asignado.");
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public PacienteDTO savePaciente(PacienteDTO pDTO) {
+        validarResponsabilidad(pDTO);
+        
+        Responsable resp = null;
+        if (pDTO.getIdResponsable() != null) {
+            resp = respRepo.findById(pDTO.getIdResponsable())
+                    .orElseThrow(() -> new IllegalArgumentException("Responsable no encontrado con ID: " + pDTO.getIdResponsable()));
+        }
+
+        Paciente p = pacienteMapper.toEntity(pDTO, resp);
+        Paciente saved = pacRepo.save(p);
+        return pacienteMapper.toDTO(saved);
     }
 
     @Override
@@ -42,71 +70,26 @@ public class PacienteService implements IPacienteService{
 
     @Override
     public PacienteDTO findPaciente(Long id) {
-        Paciente p = pacRepo.findById(id).orElse(null);
-        return (p != null) ? convertToDTO(p) : null;
+        return pacRepo.findById(id)
+                .map(pacienteMapper::toDTO)
+                .orElse(null);
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void editPaciente(PacienteDTO pDTO) {
         if (pDTO == null || pDTO.getId() == null) return;
 
-        Paciente existing = pacRepo.findById(pDTO.getId()).orElse(null);
-        if (existing != null) {
-            existing.setNombre(pDTO.getNombre());
-            existing.setApellido(pDTO.getApellido());
-            existing.setDni(pDTO.getDni());
-            existing.setTelefono(pDTO.getTelefono());
-            existing.setDireccion(pDTO.getDireccion());
-            existing.setFecha_nac(pDTO.getFecha_nac());
-            existing.setTiene_OS(pDTO.isTiene_OS());
-            existing.setTipoSangre(pDTO.getTipoSangre());
-            
+        validarResponsabilidad(pDTO);
+
+        pacRepo.findById(pDTO.getId()).ifPresent(existing -> {
+            Responsable resp = null;
             if (pDTO.getIdResponsable() != null) {
-                Responsable resp = respRepo.findById(pDTO.getIdResponsable()).orElse(null);
-                existing.setUnResponsable(resp);
-            } else {
-                existing.setUnResponsable(null);
+                resp = respRepo.findById(pDTO.getIdResponsable())
+                        .orElseThrow(() -> new IllegalArgumentException("Responsable no encontrado con ID: " + pDTO.getIdResponsable()));
             }
-            
+            pacienteMapper.updateEntityFromDTO(pDTO, existing, resp);
             pacRepo.save(existing);
-        }
+        });
     }
-
-    // Métodos auxiliares de conversión (Mappers manuales)
-    private PacienteDTO convertToDTO(Paciente p) {
-        PacienteDTO dto = new PacienteDTO();
-        dto.setId(p.getId());
-        dto.setDni(p.getDni());
-        dto.setNombre(p.getNombre());
-        dto.setApellido(p.getApellido());
-        dto.setTelefono(p.getTelefono());
-        dto.setDireccion(p.getDireccion());
-        dto.setFecha_nac(p.getFecha_nac());
-        dto.setTiene_OS(p.isTiene_OS());
-        dto.setTipoSangre(p.getTipoSangre());
-        if (p.getUnResponsable() != null) {
-            dto.setIdResponsable(p.getUnResponsable().getId());
-        }
-        return dto;
-    }
-
-    private Paciente convertToEntity(PacienteDTO dto) {
-        Paciente p = new Paciente();
-        p.setId(dto.getId());
-        p.setDni(dto.getDni());
-        p.setNombre(dto.getNombre());
-        p.setApellido(dto.getApellido());
-        p.setTelefono(dto.getTelefono());
-        p.setDireccion(dto.getDireccion());
-        p.setFecha_nac(dto.getFecha_nac());
-        p.setTiene_OS(dto.isTiene_OS());
-        p.setTipoSangre(dto.getTipoSangre());
-        if (dto.getIdResponsable() != null) {
-            Responsable resp = respRepo.findById(dto.getIdResponsable()).orElse(null);
-            p.setUnResponsable(resp);
-        }
-        return p;
-    }
-    
 }

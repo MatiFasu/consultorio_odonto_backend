@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/config-notificaciones")
-@CrossOrigin(origins = "*")
 @Tag(name = "Configuración Notificaciones", description = "Endpoints para la gestión de la configuración de notificaciones")
 public class ConfiguracionNotificacionController {
 

@@ -3,42 +3,54 @@ package com.ConsultorioOdontologico.consultorioOdontologico.controller;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.ResponsableDTO;
 import com.ConsultorioOdontologico.consultorioOdontologico.service.IResponsableService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
+@Tag(name = "Responsable", description = "Endpoints para la gestión de responsables")
 public class ResponsableController {
     
-    @Autowired
-    private IResponsableService respoServ;
+    private final IResponsableService respoServ;
     
     @GetMapping("/responsable/traer")
+    @Operation(summary = "Obtener todos los responsables")
     public List<ResponsableDTO> getResponsables() {
         return respoServ.getResponsables();
     }
     
     @GetMapping("/responsable/traer/{id}")
+    @Operation(summary = "Buscar un responsable por ID")
     public ResponsableDTO getResponsable(@PathVariable Long id) {
         return respoServ.findResponsable(id);
     }
     
     @PostMapping("/responsable/crear")
-    public String saveResponsable(@RequestBody ResponsableDTO r) {
+    @Operation(summary = "Crear un nuevo responsable")
+    public ResponseEntity<String> saveResponsable(@Valid @RequestBody ResponsableDTO r) {
         respoServ.saveResponsable(r);
-        return "Responsable creado correctamente!";
+        return new ResponseEntity<>("Responsable creado correctamente!", HttpStatus.CREATED);
     }
     
     @DeleteMapping("/responsable/borrar/{id}")
-    public String deleteResponsable(@PathVariable Long id) {
+    @Operation(summary = "Eliminar un responsable")
+    public ResponseEntity<String> deleteResponsable(@PathVariable Long id) {
         respoServ.deleteResponsable(id);
-        return "Responsable borrado correctamente!";
+        return ResponseEntity.ok("Responsable borrado correctamente!");
     }
     
     @PutMapping("/responsable/editar")
-    public String editResponsable(@RequestBody ResponsableDTO r) {
+    @Operation(summary = "Editar un responsable existente")
+    public ResponseEntity<String> editResponsable(@Valid @RequestBody ResponsableDTO r) {
         respoServ.editResponsable(r);
-        return "Responsable editado correctamente!";
+        return ResponseEntity.ok("Responsable editado correctamente!");
     }
     
 }
+

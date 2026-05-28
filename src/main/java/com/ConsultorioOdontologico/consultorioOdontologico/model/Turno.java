@@ -10,13 +10,16 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 
 @Getter @Setter
 @Entity
+@Audited
 public class Turno {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_turno;
+    @jakarta.persistence.Column(name = "id")
+    private Long id;
     
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fecha_turno;
@@ -35,8 +38,8 @@ public class Turno {
     public Turno() {
     }
 
-    public Turno(Long id_turno, LocalDate fecha_turno, String hora_turno, String afeccion) {
-        this.id_turno = id_turno;
+    public Turno(Long id, LocalDate fecha_turno, String hora_turno, String afeccion) {
+        this.id = id;
         this.fecha_turno = fecha_turno;
         this.hora_turno = hora_turno;
         this.afeccion = afeccion;

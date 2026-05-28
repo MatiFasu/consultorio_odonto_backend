@@ -1,4 +1,3 @@
-
 package com.ConsultorioOdontologico.consultorioOdontologico.controller;
 
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.PagoDTO;
@@ -6,7 +5,10 @@ import com.ConsultorioOdontologico.consultorioOdontologico.dto.PresupuestoDTO;
 import com.ConsultorioOdontologico.consultorioOdontologico.service.IFacturacionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,13 +17,19 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/facturacion")
+@RequiredArgsConstructor
 @Tag(name = "Facturación", description = "Gestión de presupuestos, pagos y saldos")
 public class FacturacionController {
 
-    @Autowired
-    private IFacturacionService factuServ;
+    private final IFacturacionService factuServ;
 
     // --- PRESUPUESTOS ---
+    @GetMapping("/presupuestos/traer/paginado")
+    @Operation(summary = "Obtener presupuestos de forma paginada")
+    public Page<PresupuestoDTO> getPresupuestosPaginated(Pageable pageable) {
+        return factuServ.getPresupuestosPaginated(pageable);
+    }
+
     @GetMapping("/presupuestos/paciente/{pacienteId}")
     @Operation(summary = "Obtener presupuestos de un paciente")
     public List<PresupuestoDTO> getPresupuestos(@PathVariable Long pacienteId) {
@@ -30,8 +38,8 @@ public class FacturacionController {
 
     @PostMapping("/presupuestos/crear")
     @Operation(summary = "Crear o actualizar un presupuesto")
-    public PresupuestoDTO savePresupuesto(@RequestBody PresupuestoDTO p) {
-        return factuServ.savePresupuesto(p);
+    public ResponseEntity<PresupuestoDTO> savePresupuesto(@Valid @RequestBody PresupuestoDTO p) {
+        return ResponseEntity.ok(factuServ.savePresupuesto(p));
     }
 
     @DeleteMapping("/presupuestos/eliminar/{id}")
@@ -42,6 +50,12 @@ public class FacturacionController {
     }
 
     // --- PAGOS ---
+    @GetMapping("/pagos/traer/paginado")
+    @Operation(summary = "Obtener pagos de forma paginada")
+    public Page<PagoDTO> getPagosPaginated(Pageable pageable) {
+        return factuServ.getPagosPaginated(pageable);
+    }
+
     @GetMapping("/pagos/paciente/{pacienteId}")
     @Operation(summary = "Obtener pagos de un paciente")
     public List<PagoDTO> getPagos(@PathVariable Long pacienteId) {
@@ -50,8 +64,8 @@ public class FacturacionController {
 
     @PostMapping("/pagos/registrar")
     @Operation(summary = "Registrar un nuevo pago")
-    public PagoDTO savePago(@RequestBody PagoDTO p) {
-        return factuServ.savePago(p);
+    public ResponseEntity<PagoDTO> savePago(@Valid @RequestBody PagoDTO p) {
+        return ResponseEntity.ok(factuServ.savePago(p));
     }
 
     @DeleteMapping("/pagos/eliminar/{id}")
@@ -64,7 +78,7 @@ public class FacturacionController {
     // --- BALANCE ---
     @GetMapping("/estado-cuenta/{pacienteId}")
     @Operation(summary = "Obtener el balance de deuda/pago de un paciente")
-    public Map<String, Double> getEstadoCuenta(@PathVariable Long pacienteId) {
-        return factuServ.getEstadoCuenta(pacienteId);
+    public ResponseEntity<Map<String, Double>> getEstadoCuenta(@PathVariable Long pacienteId) {
+        return ResponseEntity.ok(factuServ.getEstadoCuenta(pacienteId));
     }
 }

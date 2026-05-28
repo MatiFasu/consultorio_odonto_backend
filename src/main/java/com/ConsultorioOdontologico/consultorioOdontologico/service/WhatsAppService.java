@@ -3,6 +3,7 @@ package com.ConsultorioOdontologico.consultorioOdontologico.service;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PostConstruct;
@@ -11,19 +12,25 @@ import jakarta.annotation.PostConstruct;
 @Slf4j
 public class WhatsAppService {
 
-    // Credenciales obtenidas de variables de entorno para mayor seguridad
-    private static final String ACCOUNT_SID = System.getenv("TWILIO_ACCOUNT_SID");
-    private static final String AUTH_TOKEN = System.getenv("TWILIO_AUTH_TOKEN");
-    private static final String FROM_NUMBER = System.getenv("TWILIO_FROM_NUMBER") != null ? System.getenv("TWILIO_FROM_NUMBER") : "whatsapp:+14155238886"; 
-    private static final String CONTENT_SID = System.getenv("TWILIO_CONTENT_SID") != null ? System.getenv("TWILIO_CONTENT_SID") : "HXb5b62575e6e4ff6129ad7c8efe1f983e";
+    @Value("${application.security.twilio.account-sid:}")
+    private String accountSid;
+
+    @Value("${application.security.twilio.auth-token:}")
+    private String authToken;
+
+    @Value("${application.security.twilio.from-number:whatsapp:+14155238886}")
+    private String fromNumber;
+
+    @Value("${application.security.twilio.content-sid:HXb5b62575e6e4ff6129ad7c8efe1f983e}")
+    private String contentSid;
 
     @PostConstruct
     public void init() {
-        if (ACCOUNT_SID != null && AUTH_TOKEN != null) {
-            Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+        if (accountSid != null && !accountSid.isEmpty() && authToken != null && !authToken.isEmpty()) {
+            Twilio.init(accountSid, authToken);
             log.info("Twilio SDK inicializado correctamente.");
         } else {
-            log.warn("Twilio SDK no inicializado: Faltan credenciales (ACCOUNT_SID o AUTH_TOKEN).");
+            log.warn("Twilio SDK no inicializado: Faltan credenciales (twilio.account-sid o twilio.auth-token).");
         }
     }
 
@@ -37,7 +44,7 @@ public class WhatsAppService {
         }
         try {
             String formattedTo = formatNumber(telefono);
-            Message message = Message.creator(new PhoneNumber(formattedTo), new PhoneNumber(FROM_NUMBER), mensaje).create();
+            Message message = Message.creator(new PhoneNumber(formattedTo), new PhoneNumber(fromNumber), mensaje).create();
             log.info("Mensaje enviado a {}. SID: {}, Status: {}", formattedTo, message.getSid(), message.getStatus());
         } catch (Exception e) {
             log.error("Error en enviarMensaje: {}", e.getMessage());
@@ -55,8 +62,8 @@ public class WhatsAppService {
             String formattedTo = formatNumber(telefono);
             String contentVariables = "{\"1\":\"" + fecha + "\",\"2\":\"" + hora + "\"}";
 
-            Message.creator(new PhoneNumber(formattedTo), new PhoneNumber(FROM_NUMBER), "")
-                .setContentSid(CONTENT_SID)
+            Message.creator(new PhoneNumber(formattedTo), new PhoneNumber(fromNumber), "")
+                .setContentSid(contentSid)
                 .setContentVariables(contentVariables)
                 .create();
 

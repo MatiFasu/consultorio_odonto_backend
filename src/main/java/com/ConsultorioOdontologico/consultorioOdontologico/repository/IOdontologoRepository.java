@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface IOdontologoRepository extends JpaRepository<Odontologo, Long>{
     
     // Buscar un odontólogo asociado a un ID de usuario específico
-    @Query("SELECT o FROM Odontologo o WHERE o.unUsuario.id_usuario = :userId")
+    @Query("SELECT o FROM Odontologo o WHERE o.unUsuario.id = :userId")
     java.util.Optional<Odontologo> findByUsuarioId(@org.springframework.data.repository.query.Param("userId") Long userId);
 }

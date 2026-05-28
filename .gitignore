@@ -1,3 +1,15 @@
+# Secret files
+.env
+.env.local
+
+# Maven build artifacts
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
 HELP.md
 
 ### STS ###

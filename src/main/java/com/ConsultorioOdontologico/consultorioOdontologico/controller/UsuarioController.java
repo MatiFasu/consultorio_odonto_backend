@@ -3,37 +3,47 @@ package com.ConsultorioOdontologico.consultorioOdontologico.controller;
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.LoginDto;
 import com.ConsultorioOdontologico.consultorioOdontologico.dto.UsuarioDTO;
 import com.ConsultorioOdontologico.consultorioOdontologico.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "*")
+@RequestMapping("/usuario")
+@RequiredArgsConstructor
+@Tag(name = "Usuario", description = "Endpoints para la gestión de usuarios y autenticación")
 public class UsuarioController {
    
-    @Autowired
-    private UsuarioService usuServ;
+    private final UsuarioService usuServ;
     
-    @GetMapping("/usuario/traer")
+    @GetMapping("/traer")
+    @Operation(summary = "Obtener todos los usuarios")
     public List<UsuarioDTO> getUsuarios() {
         return usuServ.getUsuario();
     }
     
-    @GetMapping("/usuario/traer/{id}")
+    @GetMapping("/traer/{id}")
+    @Operation(summary = "Buscar un usuario por ID")
     public UsuarioDTO getUsuario(@PathVariable Long id) {
         return usuServ.findUsuario(id);
     }
     
-    @PostMapping("/usuario/crear")
-    public Long saveUsuario(@RequestBody UsuarioDTO u) {
+    @PostMapping("/crear")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Crear un nuevo usuario")
+    public ResponseEntity<Long> saveUsuario(@Valid @RequestBody UsuarioDTO u) {
         UsuarioDTO usuarioGuardado = usuServ.saveUsuario(u);
-        return usuarioGuardado.getId_usuario();
+        return new ResponseEntity<>(usuarioGuardado.getId(), HttpStatus.CREATED);
     }
     
-    @PostMapping("/usuario/login")
+    @PostMapping("/login")
+    @Operation(summary = "Iniciar sesión y obtener token JWT")
     public ResponseEntity<?> login(@RequestBody LoginDto l) {
         Map<String, Object> response = usuServ.login(l);
         if (response != null) {
@@ -43,15 +53,19 @@ public class UsuarioController {
         }
     }
     
-    @DeleteMapping("/usuario/borrar/{id}")
-    public String deleteUsuario(@PathVariable Long id) {
+    @DeleteMapping("/borrar/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Eliminar un usuario")
+    public ResponseEntity<String> deleteUsuario(@PathVariable Long id) {
         usuServ.deleteUsuario(id);
-        return "Usuario borrado correctamente!";
+        return ResponseEntity.ok("Usuario borrado correctamente!");
     }
     
-    @PutMapping("/usuario/editar")
-    public String editUsuario(@RequestBody UsuarioDTO u) {
+    @PutMapping("/editar")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Editar datos de un usuario")
+    public ResponseEntity<String> editUsuario(@Valid @RequestBody UsuarioDTO u) {
         usuServ.editUsuario(u);
-        return "Usuario editado correctamente!";
+        return ResponseEntity.ok("Usuario editado correctamente!");
     }
 }

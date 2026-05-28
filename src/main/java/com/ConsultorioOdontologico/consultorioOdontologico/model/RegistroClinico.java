@@ -4,11 +4,13 @@ package com.ConsultorioOdontologico.consultorioOdontologico.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter @Setter
 @Entity
+@Audited
 public class RegistroClinico {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
