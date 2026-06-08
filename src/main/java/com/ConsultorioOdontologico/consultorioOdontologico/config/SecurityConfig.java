@@ -36,6 +36,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/ping").permitAll()
                 .requestMatchers("/usuario/login").permitAll()
                 .requestMatchers("/usuario/crear", "/usuario/borrar/**", "/usuario/editar").hasAuthority("ADMIN")
                 .requestMatchers("/secretaria/crear", "/secretaria/borrar/**", "/secretaria/editar").hasAuthority("ADMIN")
